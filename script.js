@@ -33,9 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
         December: { Housing: 0, Food: 0, Transportation: 0, Bills: 0, Miscellaneous: 0 }
     };
 
-});
-
-
     // Load expenses
     function getExpensesFromLocalStorage(month, year) {
         const key = `${month}-${year}`;
@@ -110,3 +107,47 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Add new data
+    function handleSubmit(event) {
+        event.preventDefault();
+        getSelectedMonthYear();
+    
+        const category = event.target.category.value;
+        const amount = parseFloat(event.target.amount.value);    
+        const currentAmount = expenses[selectedMonth][category] || 0;
+    
+        if (amount > 0) {
+            // Add the amount to the category
+            expenses[selectedMonth][category] = currentAmount + amount;
+        } else if (amount < 0 && currentAmount >= Math.abs(amount)) {
+            // Subtract the amount if it's negative and there's enough to deduct
+            expenses[selectedMonth][category] = currentAmount + amount;  // adding a negative value is subtraction
+        } else {
+            alert('Invalid amount: Cannot reduce the category below zero.');
+            return;
+        }
+    
+        saveExpensesToLocalStorage(selectedMonth, selectedYear);
+        updateChart();
+        amountInput.value = '';  // Reset the input
+    }
+
+    // Event Listeners
+    expenseForm.addEventListener('submit', handleSubmit);
+    monthSelect.addEventListener('change', updateChart);
+    yearSelect.addEventListener('change', updateChart);
+
+    // Set default month and year
+    function setDefaultMonthYear() {
+        const now = new Date();
+        const initialMonth = now.toLocaleString('default', { month: 'long' });
+        const initialYear = now.getFullYear();
+        monthSelect.value = initialMonth;
+        yearSelect.value = initialYear;
+    }
+
+    // Startup
+    setDefaultMonthYear();
+    updateChart();
+});
